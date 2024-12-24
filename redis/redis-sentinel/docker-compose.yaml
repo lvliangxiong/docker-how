@@ -1,0 +1,75 @@
+services:
+  redis-master:
+    image: redis:latest
+    container_name: redis-master
+    ports:
+      - "6379:6379"
+    command: redis-server /etc/redis/redis-master.conf
+    volumes:
+      - ./redis-data/redis-master:/data
+      - ./redis-config:/etc/redis/
+    networks:
+      - default
+
+  redis-slave-1:
+    image: redis:latest
+    container_name: redis-slave-1
+    ports:
+      - "6380:6379"
+    command: redis-server /etc/redis/redis-slave-1.conf
+    volumes:
+      - ./redis-data/redis-slave-1:/data
+      - ./redis-config:/etc/redis
+    depends_on:
+      - redis-master
+    networks:
+      - default
+
+  redis-slave-2:
+    image: redis:latest
+    container_name: redis-slave-2
+    ports:
+      - "6381:6379"
+    command: redis-server /etc/redis/redis-slave-2.conf
+    volumes:
+      - ./redis-data/redis-slave-2:/data
+      - ./redis-config:/etc/redis
+    depends_on:
+      - redis-master
+    networks:
+      - default
+
+  redis-slave-3:
+    image: redis:latest
+    container_name: redis-slave-3
+    ports:
+      - "6382:6379"
+    command: redis-server /etc/redis/redis-slave-3.conf
+    volumes:
+      - ./redis-data/redis-slave-3:/data
+      - ./redis-config:/etc/redis
+    depends_on:
+      - redis-slave-2
+    networks:
+      - default
+
+  redis-sentinel:
+    image: redis:latest
+    container_name: redis-sentinel
+    command: redis-sentinel /etc/redis/sentinel.conf
+    volumes:
+      - ./redis-config:/etc/redis
+    depends_on:
+      - redis-master
+      - redis-slave-1
+      - redis-slave-2
+      - redis-slave-3
+    ports:
+      - "26379:26379"
+    networks:
+      - default
+
+
+networks:
+  default:
+    driver: bridge
